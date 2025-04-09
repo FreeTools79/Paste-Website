@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paste Galaxy - Voir le paste</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --bg-primary: #0f1624;
+            --bg-secondary: #1a1f2e;
+            --bg-tertiary: #252b3b;
+            --text-primary: #e2e8f0;
+            --text-secondary: #a0aec0;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-tertiary: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border-color: #2d3748;
+            --glass-bg: rgba(26, 32, 44, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: rgba(0, 0, 0, 0.25);
+        }
+
+        /* Thème clair */
+        body.light-theme {
+            --bg-primary: #f7fafc;
+            --bg-secondary: #edf2f7;
+            --bg-tertiary: #e2e8f0;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --border-color: #cbd5e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--accent-primary), var(--accent-tertiary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 24px;
+            color: var(--accent-primary);
+        }
+
+        .nav-menu {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            gap: 10px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            text-decoration: none;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        .btn-icon {
+            padding: 8px;
+            border-radius: 6px;
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-icon:hover {
+            background-color: var(--accent-primary);
+            color: white;
+        }
+
+        .content-area {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+
+        .paste-section {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .info-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px var(--glass-shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-tertiary);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 0;
+        }
+
+        .card-footer {
+            padding: 12px 15px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-tertiary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .paste-content {
+            position: relative;
+            min-height: 200px; /* Hauteur minimale pour le contenu */
+        }
+
+        .paste-content pre {
+            margin: 0;
+            padding: 15px;
+            padding-top: 45px; /* Espace pour le badge de langage */
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            tab-size: 4;
+            color: var(--text-primary);
+            white-space: pre-wrap; /* Permet au texte d'aller à la ligne */
+            word-wrap: break-word; /* Compatibilité pour les anciens navigateurs */
+            word-break: break-all; /* Coupe les mots trop longs si nécessaire */
+        }
+
+        .paste-content code {
+            background: transparent;
+            color: var(--text-primary);
+            display: block;
+            white-space: pre-wrap; /* Permet au texte d'aller à la ligne */
+            word-wrap: break-word; /* Compatibilité pour les anciens navigateurs */
+            word-break: break-all; /* Coupe les mots trop longs si nécessaire */
+        }
+
+        .paste-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .paste-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .file-list {
+            list-style: none;
+            padding: 15px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: var(--bg-tertiary);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .file-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-item-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-wrap: break-word; /* Force le texte à aller à la ligne */
+            word-wrap: break-word; /* Compatibilité avec les anciens navigateurs */
+            word-break: break-all; /* Coupe les mots trop longs si nécessaire */
+            white-space: normal; /* Remplace white-space: nowrap pour permettre le retour à la ligne */
+            max-width: 70%; /* Limite la largeur pour éviter le débordement */
+            color: var(--text-primary);
+        }
+
+        .file-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .file-item-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px;
+            transition: color 0.2s ease;
+        }
+
+        .file-item-btn:hover {
+            color: var(--accent-primary);
+        }
+
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 22, 36, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 25px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .expired-message, .not-found-message {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .message-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: var(--warning);
+        }
+
+        .message-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .message-info {
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--accent-secondary);
+        }
+
+        .language-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--accent-primary);
+            color: white;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .loader-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 22, 36, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--accent-primary);
+            animation: spin 1s linear infinite;
+        }
+
+        /* Affichage des images */
+        .file-preview {
+            margin-top: 10px;
+            max-width: 100%;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            display: block;
+        }
+
+        .file-preview-container {
+            padding: 15px;
+            background-color: var(--bg-tertiary);
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Animation d'étoiles */
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: twinkle var(--duration) infinite ease-in-out;
+            animation-delay: var(--delay);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .content-area {
+                flex-direction: column;
+            }
+            
+            .paste-section, .info-section {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 15px;
+            }
+            
+            .logo {
+                margin-bottom: 15px;
+            }
+            
+            .nav-menu {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-bottom: 15px;
+            }
+            
+            .nav-item {
+                margin-bottom: 0;
+            }
+            
+            .nav-link {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            
+            .sidebar-footer {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .card-footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .paste-meta, .paste-actions {
+                width: 100%;
+            }
+            
+            .paste-actions {
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <div class="container">
+        <aside class="sidebar">
+            <a href="/" class="logo">
+                <i class="fas fa-galaxy"></i>
+                Paste Galaxy
+            </a>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link">
+                        <i class="fas fa-plus"></i>
+                        Nouveau Paste
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="syntax-link">
+                        <i class="fas fa-code"></i>
+                        Syntaxe
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="about-link">
+                        <i class="fas fa-info-circle"></i>
+                        À propos
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                © 2025 Paste Galaxy
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <header class="header">
+                <h1 class="page-title" id="paste-title">Chargement...</h1>
+                
+                <div class="header-actions">
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-plus"></i>
+                        Nouveau paste
+                    </a>
+                    <button class="btn btn-secondary" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                        Thème
+                    </button>
+                </div>
+            </header>
+            
+            <div class="content-area" id="paste-container">
+                <section class="paste-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Contenu</h2>
+                            <div class="paste-actions">
+                                <a href="#" class="btn btn-icon" id="raw-btn" target="_blank" title="Voir en format brut">
+                                    <i class="fas fa-code"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="paste-content">
+                                <div class="language-badge" id="language-badge">plaintext</div>
+                                <button class="copy-btn" id="copy-btn">
+                                    <i class="fas fa-copy"></i> Copier
+                                </button>
+                                <pre><code id="code-block">Chargement du contenu...</code></pre>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="paste-meta">
+                                <span id="creation-date"><i class="fas fa-calendar"></i> Créé le: --/--/----</span>
+                                <span id="expiration-date"><i class="fas fa-clock"></i> Expire le: --/--/----</span>
+                            </div>
+                            <div class="paste-actions">
+                                <button class="btn btn-secondary" id="share-btn">
+                                    <i class="fas fa-share-alt"></i> Partager
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" id="files-card" style="display: none;">
+                        <div class="card-header">
+                            <h2 class="card-title">Fichiers attachés</h2>
+                        </div>
+                        <div class="card-body">
+                            <ul class="file-list" id="file-list">
+                                <!-- Les fichiers attachés apparaîtront ici -->
+                            </ul>
+                            <div id="file-previews">
+                                <!-- Les aperçus d'images apparaîtront ici -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="info-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Informations</h2>
+                        </div>
+                        <ul class="info-list">
+                            <li class="info-item">
+                                <span class="info-label">Langage</span>
+                                <span class="info-value" id="info-syntax">--</span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">Créé le</span>
+                                <span class="info-value" id="info-created">--/--/----</span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">Expire le</span>
+                                <span class="info-value" id="info-expires">--/--/----</span>
+                            </li>
+                            <li class="info-item">
+                                <span class="info-label">Taille</span>
+                                <span class="info-value" id="info-size">-- Ko</span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </div>
+            
+            <div class="card" id="expired-container" style="display: none;">
+                <div class="expired-message">
+                    <div class="message-icon">
+                        <i class="fas fa-hourglass-end"></i>
+                    </div>
+                    <h2 class="message-title">Ce paste a expiré</h2>
+                    <p class="message-info">Le paste que vous recherchez n'est plus disponible car il a expiré.</p>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Créer un nouveau paste
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card" id="not-found-container" style="display: none;">
+                <div class="not-found-message">
+                    <div class="message-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h2 class="message-title">Paste introuvable</h2>
+                    <p class="message-info">Le paste que vous recherchez n'existe pas ou a été supprimé.</p>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Créer un nouveau paste
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="password-modal" id="password-modal" style="display: none;">
+        <div class="modal-content">
+            <h2 class="modal-title">Ce paste est protégé par un mot de passe</h2>
+            <form id="password-form">
+                <div class="form-group">
+                    <label for="paste-password" class="form-label">Mot de passe</label>
+                    <input type="password" class="form-control" id="paste-password" placeholder="Entrez le mot de passe" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-unlock"></i> Déverrouiller
+                    </button>
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Générer les étoiles
+            const starsContainer = document.getElementById('stars');
+            const starsCount = 150;
+            
+            for (let i = 0; i < starsCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Taille aléatoire
+                const size = Math.random() * 3;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // Position aléatoire
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                // Animation aléatoire
+                star.style.setProperty('--duration', `${2 + Math.random() * 3}s`);
+                star.style.setProperty('--delay', `${Math.random() * 2}s`);
+                
+                starsContainer.appendChild(star);
+            }
+            
+            // Récupérer l'ID du paste depuis l'URL
+            const urlParts = window.location.pathname.split('/');
+            const pasteId = urlParts[urlParts.length - 1];
+            
+            // Éléments du DOM
+            const pasteContainer = document.getElementById('paste-container');
+            const expiredContainer = document.getElementById('expired-container');
+            const notFoundContainer = document.getElementById('not-found-container');
+            const pasteTitle = document.getElementById('paste-title');
+            const codeBlock = document.getElementById('code-block');
+            const languageBadge = document.getElementById('language-badge');
+            const creationDate = document.getElementById('creation-date');
+            const expirationDate = document.getElementById('expiration-date');
+            const infoSyntax = document.getElementById('info-syntax');
+            const infoCreated = document.getElementById('info-created');
+            const infoExpires = document.getElementById('info-expires');
+            const infoSize = document.getElementById('info-size');
+            const copyBtn = document.getElementById('copy-btn');
+            const shareBtn = document.getElementById('share-btn');
+            const rawBtn = document.getElementById('raw-btn');
+            const passwordModal = document.getElementById('password-modal');
+            const passwordForm = document.getElementById('password-form');
+            const filesCard = document.getElementById('files-card');
+            const fileList = document.getElementById('file-list');
+            const filePreviews = document.getElementById('file-previews');
+            const loader = document.getElementById('loader');
+            
+            // Afficher le loader
+            loader.style.display = 'flex';
+            
+            // Récupérer le paste depuis le serveur
+            fetch(`/api/paste/${pasteId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(paste => {
+                    // Cacher le loader
+                    loader.style.display = 'none';
+                    
+                    // Vérifier si le paste est protégé par un mot de passe
+                    if (paste.isPasswordProtected) {
+                        passwordModal.style.display = 'flex';
+                        
+                        passwordForm.addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            
+                            const password = document.getElementById('paste-password').value;
+                            
+                            // Afficher le loader
+                            loader.style.display = 'flex';
+                            
+                            // Vérifier le mot de passe
+                            fetch(`/api/paste/${pasteId}/verify`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ password })
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(paste => {
+                                // Cacher le loader
+                                loader.style.display = 'none';
+                                
+                                // Cacher le modal
+                                passwordModal.style.display = 'none';
+                                
+                                // Afficher le paste
+                                displayPaste(paste);
+                            })
+                            .catch(error => {
+                                // Cacher le loader
+                                loader.style.display = 'none';
+                                
+                                // Afficher l'erreur
+                                if (error.message.includes('401')) {
+                                    alert('Mot de passe incorrect');
+                                } else if (error.message.includes('410')) {
+                                    passwordModal.style.display = 'none';
+                                    pasteContainer.style.display = 'none';
+                                    expiredContainer.style.display = 'block';
+                                } else if (error.message.includes('404')) {
+                                    passwordModal.style.display = 'none';
+                                    pasteContainer.style.display = 'none';
+                                    notFoundContainer.style.display = 'block';
+                                } else {
+                                    alert('Une erreur est survenue. Veuillez réessayer.');
+                                }
+                            });
+                        });
+                    } else {
+                        // Paste non protégé
+                        displayPaste(paste);
+                    }
+                })
+                .catch(error => {
+                    // Cacher le loader
+                    loader.style.display = 'none';
+                    
+                    // Afficher l'erreur
+                    console.error('Erreur:', error);
+                    
+                    if (error.message.includes('410')) {
+                        pasteContainer.style.display = 'none';
+                        expiredContainer.style.display = 'block';
+                    } else if (error.message.includes('404')) {
+                        pasteContainer.style.display = 'none';
+                        notFoundContainer.style.display = 'block';
+                    } else {
+                        alert('Une erreur est survenue lors de la récupération du paste. Veuillez réessayer.');
+                    }
+                });
+            
+            // Fonction pour afficher le paste
+            function displayPaste(paste) {
+                // Afficher le titre
+                pasteTitle.textContent = paste.title || 'Sans titre';
+                document.title = `${paste.title || 'Sans titre'} - Paste Galaxy`;
+                
+                // Afficher le contenu
+                codeBlock.textContent = paste.content || '';
+                codeBlock.className = `language-${paste.syntax}`;
+                languageBadge.textContent = paste.syntax;
+                
+                // Appliquer la coloration syntaxique
+                hljs.highlightElement(codeBlock);
+                
+                // Afficher les informations
+                infoSyntax.textContent = paste.syntax;
+                
+                // Calculer la taille du contenu
+                const contentSize = new Blob([paste.content || '']).size;
+                infoSize.textContent = formatSize(contentSize);
+                
+                // Afficher les dates
+                const created = new Date(paste.createdAt);
+                creationDate.innerHTML = `<i class="fas fa-calendar"></i> Créé le: ${formatDate(created)}`;
+                infoCreated.textContent = formatDate(created);
+                
+                if (paste.expiration !== 'never') {
+                    const expires = getExpirationDate(created, paste.expiration);
+                    expirationDate.innerHTML = `<i class="fas fa-clock"></i> Expire le: ${formatDate(expires)}`;
+                    infoExpires.textContent = formatDate(expires);
+                } else {
+                    expirationDate.innerHTML = `<i class="fas fa-infinity"></i> N'expire jamais`;
+                    infoExpires.textContent = "N'expire jamais";
+                }
+                
+                // Configurer le bouton Raw
+                rawBtn.href = `/raw/${paste.id}`;
+                
+                // Afficher les fichiers attachés s'il y en a
+                if (paste.files && paste.files.length > 0) {
+                    filesCard.style.display = 'block';
+                    
+                    paste.files.forEach(file => {
+                        const fileItem = document.createElement('li');
+                        fileItem.classList.add('file-item');
+                        
+                        const fileIcon = getFileIcon(file.name);
+                        
+                        fileItem.innerHTML = `
+                            <div class="file-item-name">
+                                <i class="${fileIcon}"></i>
+                                ${file.name}
+                            </div>
+                            <div class="file-item-actions">
+                                <a href="/files/${paste.id}/${file.id}" class="file-item-btn" title="Télécharger" download>
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        `;
+                        
+                        fileList.appendChild(fileItem);
+                        
+                        // Afficher un aperçu pour les images
+                        if (isImageFile(file.name)) {
+                            const previewContainer = document.createElement('div');
+                            previewContainer.classList.add('file-preview-container');
+                            
+                            previewContainer.innerHTML = `
+                                <h3>${file.name}</h3>
+                                <img src="/files/${paste.id}/${file.id}" class="file-preview" alt="${file.name}">
+                            `;
+                            
+                            filePreviews.appendChild(previewContainer);
+                        }
+                    });
+                }
+                
+                // Bouton de copie
+                copyBtn.addEventListener('click', function() {
+                    // Utiliser l'API Clipboard moderne
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(paste.content || '')
+                            .then(() => {
+                                const originalText = this.innerHTML;
+                                this.innerHTML = '<i class="fas fa-check"></i> Copié!';
+                                
+                                setTimeout(() => {
+                                    this.innerHTML = originalText;
+                                }, 2000);
+                            })
+                            .catch(err => {
+                                console.error('Erreur lors de la copie:', err);
+                                fallbackCopyTextToClipboard(paste.content || '');
+                            });
+                    } else {
+                        fallbackCopyTextToClipboard(paste.content || '');
+                    }
+                });
+                
+                // Bouton de partage
+                shareBtn.addEventListener('click', function() {
+                    // Utiliser l'API Clipboard moderne
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(window.location.href)
+                            .then(() => {
+                                const originalText = this.innerHTML;
+                                this.innerHTML = '<i class="fas fa-check"></i> Copié!';
+                                
+                                setTimeout(() => {
+                                    this.innerHTML = originalText;
+                                }, 2000);
+                            })
+                            .catch(err => {
+                                console.error('Erreur lors de la copie:', err);
+                                fallbackCopyTextToClipboard(window.location.href);
+                            });
+                    } else {
+                        fallbackCopyTextToClipboard(window.location.href);
+                    }
+                });
+            }
+            
+            // Méthode de secours pour copier le texte
+            function fallbackCopyTextToClipboard(text) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                
+                // Rendre l'élément invisible
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                textArea.style.top = '-9999px';
+                
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        const originalText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copié!';
+                        
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalText;
+                        }, 2000);
+                    } else {
+                        alert('La copie a échoué. Veuillez copier le contenu manuellement.');
+                    }
+                } catch (err) {
+                    console.error('Erreur lors de la copie:', err);
+                    alert('La copie a échoué. Veuillez copier le contenu manuellement.');
+                }
+                
+                document.body.removeChild(textArea);
+            }
+            
+            // Fonction pour calculer la date d'expiration
+            function getExpirationDate(created, expiration) {
+                const date = new Date(created);
+                
+                switch (expiration) {
+                    case '10m':
+                        date.setMinutes(date.getMinutes() + 10);
+                        break;
+                    case '1h':
+                        date.setHours(date.getHours() + 1);
+                        break;
+                    case '1d':
+                        date.setDate(date.getDate() + 1);
+                        break;
+                    case '1w':
+                        date.setDate(date.getDate() + 7);
+                        break;
+                    case '2w':
+                        date.setDate(date.getDate() + 14);
+                        break;
+                    case '1m':
+                        date.setMonth(date.getMonth() + 1);
+                        break;
+                    case '6m':
+                        date.setMonth(date.getMonth() + 6);
+                        break;
+                    case '1y':
+                        date.setFullYear(date.getFullYear() + 1);
+                        break;
+                }
+                
+                return date;
+            }
+            
+            // Fonction pour formater une date
+            function formatDate(date) {
+                return date.toLocaleDateString('fr-FR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            
+            // Fonction pour formater la taille d'un fichier
+            function formatSize(bytes) {
+                if (bytes < 1024) {
+                    return bytes + ' o';
+                } else if (bytes < 1024 * 1024) {
+                    return (bytes / 1024).toFixed(1) + ' Ko';
+                } else if (bytes < 1024 * 1024 * 1024) {
+                    return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
+                } else {
+                    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' Go';
+                }
+            }
+            
+            // Fonction pour obtenir l'icône en fonction du type de fichier
+            function getFileIcon(filename) {
+                const extension = filename.split('.').pop().toLowerCase();
+                
+                const iconMap = {
+                    'pdf': 'fas fa-file-pdf',
+                    'doc': 'fas fa-file-word',
+                    'docx': 'fas fa-file-word',
+                    'xls': 'fas fa-file-excel',
+                    'xlsx': 'fas fa-file-excel',
+                    'ppt': 'fas fa-file-powerpoint',
+                    'pptx': 'fas fa-file-powerpoint',
+                    'jpg': 'fas fa-file-image',
+                    'jpeg': 'fas fa-file-image',
+                    'png': 'fas fa-file-image',
+                    'gif': 'fas fa-file-image',
+                    'svg': 'fas fa-file-image',
+                    'mp3': 'fas fa-file-audio',
+                    'wav': 'fas fa-file-audio',
+                    'mp4': 'fas fa-file-video',
+                    'avi': 'fas fa-file-video',
+                    'mov': 'fas fa-file-video',
+                    'zip': 'fas fa-file-archive',
+                    'rar': 'fas fa-file-archive',
+                    '7z': 'fas fa-file-archive',
+                    'txt': 'fas fa-file-alt',
+                    'js': 'fab fa-js',
+                    'html': 'fab fa-html5',
+                    'css': 'fab fa-css3-alt',
+                    'php': 'fab fa-php',
+                    'py': 'fab fa-python',
+                    'java': 'fab fa-java',
+                    'json': 'fas fa-file-code',
+                    'xml': 'fas fa-file-code',
+                    'md': 'fas fa-file-code'
+                };
+                
+                return iconMap[extension] || 'fas fa-file';
+            }
+            
+            // Fonction pour vérifier si un fichier est une image
+            function isImageFile(filename) {
+                const extension = filename.split('.').pop().toLowerCase();
+                return ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension);
+            }
+            
+            // Toggle du thème
+            const themeToggle = document.getElementById('theme-toggle');
+            themeToggle.addEventListener('click', function() {
+                const body = document.body;
+                body.classList.toggle('light-theme');
+                
+                const icon = this.querySelector('i');
+                if (body.classList.contains('light-theme')) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+            
+            // Fonctionnalité des boutons de syntaxe
+            document.getElementById('syntax-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Liste des langages supportés : JavaScript, Python, Java, C#, C++, PHP, Ruby, Go, Rust, Swift, Kotlin, HTML, CSS, SQL, Bash, PowerShell, JSON, XML, YAML, Markdown et plus encore!');
+            });
+            
+            // Fonctionnalité du bouton À propos
+            document.getElementById('about-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Paste Galaxy est un service de partage de code et de texte avec un thème galaxy. Créez et partagez vos pastes facilement avec des liens uniques. Fonctionnalités : coloration syntaxique, expiration configurable, protection par mot de passe, upload de fichiers jusqu\'à 30 Mo.');
+            });
+        });
+    </script>
+</body>
+</html>
